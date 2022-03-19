@@ -2,12 +2,135 @@ FROM phusion/baseimage:focal-1.2.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install python3 and slurmctld
-RUN apt-get update \
-  && apt-get install --yes \
+# Build python2-pyslurm
+#COPY pyslurm/debian.python2 /tmp/debian.python2
+#RUN build_deps="\
+#    cython \
+#    debhelper \
+#    devscripts \
+#    equivs \
+#    git \
+#    libslurm-dev \
+#    python-dev \
+#    python-setuptools \
+#    slurm-wlm-basic-plugins \
+#  " \
+#  && apt-get update \
+#  && apt-get install --yes ${build_deps} \
+#  && cd /tmp \
+#  && git clone --single-branch --branch 19-05-0 https://github.com/pyslurm/pyslurm.git \
+#  # (start) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
+#  && sed -i "53s|None|'/usr/lib/x86_64-linux-gnu'|" pyslurm/setup.py \
+#  && sed -i "54s|None|'/usr/include/slurm'|" pyslurm/setup.py \
+#  && sed -i "99s|/slurm|/slurm-wlm|" pyslurm/setup.py \
+#  # (end) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
+#  && cp -R debian.python2 pyslurm/debian \
+#  && cd pyslurm && rm -rf .git .github .gitignore .travis.yml \
+#  && tar cvfj ../python2-pyslurm_19.05.0.orig.tar.bz2 . \
+#  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+#  && debuild -us -uc \
+#  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+#  && apt-get purge --yes --auto-remove ${build_deps} \
+#  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Build python3-pyslurm
+COPY pyslurm/debian.python3 /tmp/debian.python3
+RUN build_deps="\
+    cython \
+    cython3 \
+    debhelper \
+    devscripts \
+    dh-python \
+    equivs \
     git \
-    python3 \
-    python3-pip \
+    libslurm-dev \
+    python3-dev \
+    python3-setuptools \
+    slurm-wlm-basic-plugins \
+  "\
+  && apt-get update \
+  && apt-get install --yes ${build_deps} \
+  && cd /tmp \
+  && git clone --single-branch --branch 19-05-0 https://github.com/pyslurm/pyslurm.git \
+  # (start) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
+  && sed -i "53s|None|'/usr/lib/x86_64-linux-gnu'|" pyslurm/setup.py \
+  && sed -i "54s|None|'/usr/include/slurm'|" pyslurm/setup.py \
+  && sed -i "99s|/slurm|/slurm-wlm|" pyslurm/setup.py \
+  # (end) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
+  && cp -R debian.python3 pyslurm/debian \
+  && cd pyslurm && rm -rf .git .github .gitignore .travis.yml \
+  && tar cvfj ../python3-pyslurm_19.05.0.orig.tar.bz2 . \
+  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+  && debuild -us -uc \
+  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+  && apt-get purge --yes --auto-remove ${build_deps} \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN build_deps="\
+    debhelper \
+    devscripts \
+    equivs \
+    git \
+  " \
+  && apt-get update \
+  && apt-get install --yes ${build_deps} \
+  && cd /tmp \
+  # Build node-opentypejs
+  && git clone --single-branch --branch debian/0.4.3-2 https://github.com/edf-hpc/opentypejs.git \
+  && cd opentypejs && rm -rf .git* .jshint* .npmignore \
+  && tar cvfj ../opentypejs_0.4.3.orig.tar.bz2 . \
+  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+  && debuild -us -uc \
+  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+  # Build libjs-bootstrap-typeahead
+  && git clone --single-branch --branch debian/0.11.1-1 https://github.com/edf-hpc/libjs-bootstrap-typeahead.git \
+  && cd libjs-bootstrap-typeahead && rm -rf .git* .jshint* .travis* \
+  && tar cvfj ../libjs-bootstrap-typeahead_0.11.1.orig.tar.bz2 . \
+  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+  && debuild -us -uc \
+  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+  # Build libjs-bootstrap-tagsinput
+  && git clone --single-branch --branch debian/0.8.0-1 https://github.com/edf-hpc/libjs-bootstrap-tagsinput.git \
+  && cd libjs-bootstrap-tagsinput && rm -rf .git* .travis* \
+  && tar cvfj ../libjs-bootstrap-tagsinput_0.8.0.orig.tar.bz2 . \
+  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+  && debuild -us -uc \
+  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+  && apt-get purge --yes --auto-remove ${build_deps} \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Build slurm-web
+COPY DejaVuSansMono.typeface.js.tar.gz /tmp
+RUN build_deps="\
+    apache2-dev \
+    debhelper \
+    devscripts \
+    dh-python \
+    equivs \
+    fonts-dejavu-core \
+    git \
+    node-uglify \
+    python3-all \
+  "\
+  && apt-get update \
+  && apt-get install --yes ${build_deps} \
+  && dpkg -i /tmp/node-opentypejs_0.4.3-2_all.deb \
+  && cd /tmp \
+  && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
+  # (start) Patch slurm-web v2.4.0
+  && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
+  && sed -i "9s|^|#|" slurm-web/debian/rules \
+  && mkdir -p slurm-web/dashboard/js/fonts \
+  && tar -zxvf *.js.tar.gz --directory slurm-web/dashboard/js/fonts \
+  && chown root:root slurm-web/dashboard/js/fonts/* \
+  # (end) Patch slurm-web v2.4.0
+  && cd slurm-web && rm -rf .git* .code* .css* .es* \
+  && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
+  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
+  && debuild -us -uc \
+  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
+  && apt-get remove --yes node-opentypejs \
+  && apt-get purge --yes --auto-remove ${build_deps} \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install and configure munge
@@ -42,131 +165,8 @@ RUN apt-get update \
   && chmod +x /etc/service/apache2/run
 EXPOSE 80/tcp
 
-# Build python2-pyslurm
-#COPY pyslurm/debian.python2 /tmp/debian.python2
-#RUN build_deps="\
-#    cython \
-#    debhelper \
-#    devscripts \
-#    equivs \
-#    libslurm-dev \
-#    python \
-#    python-dev \
-#    python-setuptools \
-#    slurm-wlm-basic-plugins \
-#  " \
-#  && apt-get update \
-#  && apt-get install --yes ${build_deps} \
-#  && cd /tmp \
-#  && git clone --single-branch --branch 19-05-0 https://github.com/pyslurm/pyslurm.git \
-#  # (start) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
-#  && sed -i "53s|None|'/usr/lib/x86_64-linux-gnu'|" pyslurm/setup.py \
-#  && sed -i "54s|None|'/usr/include/slurm'|" pyslurm/setup.py \
-#  && sed -i "99s|/slurm|/slurm-wlm|" pyslurm/setup.py \
-#  # (end) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
-#  && cp -R debian.python2 pyslurm/debian \
-#  && cd pyslurm && rm -rf .git .github .gitignore .travis.yml \
-#  && tar cvfj ../python2-pyslurm_19.05.0.orig.tar.bz2 . \
-#  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-#  && debuild -us -uc \
-#  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-#  && apt-get purge --yes --auto-remove ${build_deps} \
-#  && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Build python3-pyslurm
-COPY pyslurm/debian.python3 /tmp/debian.python3
-RUN build_deps="\
-    cython \
-    cython3 \
-    debhelper \
-    devscripts \
-    dh-python \
-    equivs \
-    libslurm-dev \
-    slurm-wlm-basic-plugins \
-  "\
-  && apt-get update \
-  && apt-get install --yes ${build_deps} \
-  && cd /tmp \
-  && git clone --single-branch --branch 19-05-0 https://github.com/pyslurm/pyslurm.git \
-  # (start) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
-  && sed -i "53s|None|'/usr/lib/x86_64-linux-gnu'|" pyslurm/setup.py \
-  && sed -i "54s|None|'/usr/include/slurm'|" pyslurm/setup.py \
-  && sed -i "99s|/slurm|/slurm-wlm|" pyslurm/setup.py \
-  # (end) Patch pyslurm 19-05-0 so that it works with stock Slurm 19.05.5 on Ubuntu 20.04 (aka focal)
-  && cp -R debian.python3 pyslurm/debian \
-  && cd pyslurm && rm -rf .git .github .gitignore .travis.yml \
-  && tar cvfj ../python3-pyslurm_19.05.0.orig.tar.bz2 . \
-  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-  && debuild -us -uc \
-  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-  && apt-get purge --yes --auto-remove ${build_deps} \
-  && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN build_deps="\
-    debhelper \
-    devscripts \
-    equivs \
-  " \
-  && apt-get update \
-  && apt-get install --yes ${build_deps} \
-  && cd /tmp \
-  # Build node-opentypejs
-  && git clone --single-branch --branch debian/0.4.3-2 https://github.com/edf-hpc/opentypejs.git \
-  && cd opentypejs && rm -rf .git* .jshint* .npmignore \
-  && tar cvfj ../opentypejs_0.4.3.orig.tar.bz2 . \
-  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-  && debuild -us -uc \
-  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-  # Build libjs-bootstrap-typeahead
-  && git clone --single-branch --branch debian/0.11.1-1 https://github.com/edf-hpc/libjs-bootstrap-typeahead.git \
-  && cd libjs-bootstrap-typeahead && rm -rf .git* .jshint* .travis* \
-  && tar cvfj ../libjs-bootstrap-typeahead_0.11.1.orig.tar.bz2 . \
-  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-  && debuild -us -uc \
-  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-  # Build libjs-bootstrap-tagsinput
-  && git clone --single-branch --branch debian/0.8.0-1 https://github.com/edf-hpc/libjs-bootstrap-tagsinput.git \
-  && cd libjs-bootstrap-tagsinput && rm -rf .git* .travis* \
-  && tar cvfj ../libjs-bootstrap-tagsinput_0.8.0.orig.tar.bz2 . \
-  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-  && debuild -us -uc \
-  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-  && apt-get purge --yes --auto-remove ${build_deps} \
-  && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Build and install slurm-web
-COPY DejaVuSansMono.typeface.js.tar.gz /tmp
-RUN build_deps="\
-    apache2-dev \
-    debhelper \
-    devscripts \
-    dh-python \
-    equivs \
-    fonts-dejavu-core \
-    node-uglify \
-    python3-all \
-  "\
-  && apt-get update \
-  && apt-get install --yes ${build_deps} \
-  && dpkg -i /tmp/node-opentypejs_0.4.3-2_all.deb \
-  && cd /tmp \
-  && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
-  # (start) Patch slurm-web v2.4.0
-  && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
-  && sed -i "9s|^|#|" slurm-web/debian/rules \
-  && mkdir -p slurm-web/dashboard/js/fonts \
-  && tar -zxvf *.js.tar.gz --directory slurm-web/dashboard/js/fonts \
-  && chown root:root slurm-web/dashboard/js/fonts/* \
-  # (end) Patch slurm-web v2.4.0
-  && cd slurm-web && rm -rf .git* .code* .css* .es* \
-  && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
-  && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
-  && debuild -us -uc \
-  && cd .. && (find . -not -name "*.deb" -exec rm -rf {} \; > /dev/null 2>&1 || true) \
-  && apt-get remove --yes node-opentypejs \
-  && apt-get purge --yes --auto-remove ${build_deps} \
-  # Install runtime dependencies
+# Install slurm-web
+RUN apt-get update \
   && apt-get install --yes \
     libjs-async \
     libjs-bootstrap \
