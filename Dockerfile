@@ -1,6 +1,6 @@
 FROM phusion/baseimage:focal-1.2.0
 
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Build python2-pyslurm
 #COPY pyslurm/debian.python2 /tmp/debian.python2
@@ -118,11 +118,18 @@ RUN build_deps="\
   && cd /tmp \
   && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
   # (start) Patch slurm-web v2.4.0
+  # fix a simple syntax error
   && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
+  # fix "cannot find package.json" problem
   && sed -i "9s|^|#|" slurm-web/debian/rules \
   && mkdir -p slurm-web/dashboard/js/fonts \
   && tar -zxvf *.js.tar.gz --directory slurm-web/dashboard/js/fonts \
   && chown root:root slurm-web/dashboard/js/fonts/* \
+  # fix old syntax problem
+  && find slurm-web/dashboard/js/ -name "*.js" \
+    -exec sed -i "s|\.success(func|\.done(func|g" {} \; \
+    -exec sed -i "s|\.error(func|\.fail(func|g" {} \; \
+    -exec sed -i "s|\.complete(|\.always(|g" {} \; \
   # (end) Patch slurm-web v2.4.0
   && cd slurm-web && rm -rf .git* .code* .css* .es* \
   && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
@@ -146,6 +153,12 @@ RUN apt-get update \
 ENV LC_ALL=C.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
+ENV APACHE_RUN_USER=www-data
+ENV APACHE_RUN_GROUP=www-data
+ENV APACHE_LOG_DIR=/var/log/apache2
+ENV APACHE_LOCK_DIR=/var/lock/apache2
+ENV APACHE_PID_FILE=/var/run/apache2.pid
+ENV APACHE_RUN_DIR=/var/run/apache2
 RUN apt-get update \
   && apt-get install --yes apache2 libapache2-mod-wsgi-py3 javascript-common \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
@@ -154,12 +167,6 @@ RUN apt-get update \
   && a2enconf javascript-common \
   && locale-gen en_US.UTF-8 \
   && chown -R www-data:www-data /var/log/apache2 \
-  && echo www-data > /etc/container_environment/APACHE_RUN_USER \
-  && echo www-data > /etc/container_environment/APACHE_RUN_GROUP \
-  && echo /var/log/apache2 > /etc/container_environment/APACHE_LOG_DIR \
-  && echo /var/lock/apache2 > /etc/container_environment/APACHE_LOCK_DIR \
-  && echo /var/run/apache2.pid > /etc/container_environment/APACHE_PID_FILE \
-  && echo /var/run/apache2 > /etc/container_environment/APACHE_RUN_DIR \
   && mkdir -p /etc/service/apache2 \
   && echo "#!/bin/bash\nset -e\nexec /usr/sbin/apache2 -D FOREGROUND" > /etc/service/apache2/run \
   && chmod +x /etc/service/apache2/run
