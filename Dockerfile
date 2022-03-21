@@ -118,7 +118,9 @@ RUN build_deps="\
   && cd /tmp \
   && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
   # (patch-start)
-  # (patch) regress to fix wrong job coloring in jobsmap problem (what a shame)
+  # (patch) stick to one language which already used in this project, even though you are proud of your whatever.
+  && sed -i "s|cœurs utilisés|cores used|" slurm-web/dashboard/js/utils/tagsinput.js \
+  # (patch) regress to fix wrong job coloring in jobsmap problem (what a pity)
   # @see https://github.com/edf-hpc/slurm-web/issues/210
   && git clone --single-branch --branch v2.2.2 https://github.com/edf-hpc/slurm-web.git slurm-web.v2.2.2 \
   && mv -f slurm-web.v2.2.2/dashboard/js/draw/2d-* slurm-web/dashboard/js/draw/\
