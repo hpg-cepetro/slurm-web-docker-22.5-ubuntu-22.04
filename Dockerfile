@@ -100,7 +100,7 @@ RUN build_deps="\
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build slurm-web
-COPY DejaVuSansMono.typeface.js.tar.gz /tmp
+COPY slurm-web/DejaVuSansMono.typeface.json.tar.gz /tmp
 RUN build_deps="\
     apache2-dev \
     debhelper \
@@ -117,20 +117,24 @@ RUN build_deps="\
   && dpkg -i /tmp/node-opentypejs_0.4.3-2_all.deb \
   && cd /tmp \
   && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
-  # (start) Patch slurm-web v2.4.0
-  # fix a simple syntax error
+  # (patch-start)
+  # (patch) fix a simple syntax error
   && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
-  # fix "cannot find package.json" problem
-  && sed -i "9s|^|#|" slurm-web/debian/rules \
-  && mkdir -p slurm-web/dashboard/js/fonts \
-  && tar -zxvf *.js.tar.gz --directory slurm-web/dashboard/js/fonts \
-  && chown root:root slurm-web/dashboard/js/fonts/* \
-  # fix old syntax problem
+  # (patch) fix "cannot find package.json" problem
+  && tar -zxvf DejaVuSansMono.typeface.json.tar.gz \
+  && chown root:root DejaVuSansMono.typeface.json \
+  && sed -i "9s|nodejs.*|cp /tmp/DejaVuSansMono.typeface.json dashboard/js/fonts/DejaVuSansMono.typeface.json|" slurm-web/debian/rules \
+  # (patch) fix old syntax problem
+  && sed -i "493s|font.*|font: font,|" slurm-web/dashboard/js/draw/3d-draw.js \
+  && sed -i "488s|^|//|" slurm-web/dashboard/js/draw/3d-draw.js \
+  && sed -i "488 a loader.load(config.RACKNAME.FONT.PATH, function(font) {" slurm-web/dashboard/js/draw/3d-draw.js \
+  && sed -i "488 a var loader = new THREE.FontLoader();" slurm-web/dashboard/js/draw/3d-draw.js \
+  # (patch) fix old syntax problem
   && find slurm-web/dashboard/js/ -name "*.js" \
     -exec sed -i "s|\.success(func|\.done(func|g" {} \; \
     -exec sed -i "s|\.error(func|\.fail(func|g" {} \; \
     -exec sed -i "s|\.complete(|\.always(|g" {} \; \
-  # (end) Patch slurm-web v2.4.0
+  # (patch-end)
   && cd slurm-web && rm -rf .git* .code* .css* .es* \
   && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
   && mk-build-deps -ri -t "apt-get --yes --no-install-recommends" \
