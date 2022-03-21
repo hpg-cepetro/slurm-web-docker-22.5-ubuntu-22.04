@@ -130,11 +130,13 @@ RUN build_deps="\
   && chown root:root DejaVuSansMono.typeface.json \
   && sed -i "9s|nodejs.*|cp /tmp/DejaVuSansMono.typeface.json dashboard/js/fonts/DejaVuSansMono.typeface.json|" slurm-web/debian/rules \
   # (patch) fix old syntax problem
+  # @see https://github.com/edf-hpc/slurm-web/issues/115#issuecomment-292572760
   && sed -i "493s|font.*|font: font,|" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488s|^|//|" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488 a loader.load(config.RACKNAME.FONT.PATH, function(font) {" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488 a var loader = new THREE.FontLoader();" slurm-web/dashboard/js/draw/3d-draw.js \
   # (patch) fix old syntax problem
+  # @see https://stackoverflow.com/a/46395784
   && find slurm-web/dashboard/js/ -name "*.js" \
     -exec sed -i "s|\.success(func|\.done(func|g" {} \; \
     -exec sed -i "s|\.error(func|\.fail(func|g" {} \; \
