@@ -143,6 +143,8 @@ RUN build_deps="\
     -exec sed -i "s|\.success(func|\.done(func|g" {} \; \
     -exec sed -i "s|\.error(func|\.fail(func|g" {} \; \
     -exec sed -i "s|\.complete(|\.always(|g" {} \; \
+  # (patch) fix wrong string
+  && sed -i "61s|users.*|users.push(tags[0]);|" slurm-web/dashboard/js/utils/tagsinput.js \
   # (patch-end)
   && cd slurm-web && rm -rf .git* .code* .css* .es* \
   && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
