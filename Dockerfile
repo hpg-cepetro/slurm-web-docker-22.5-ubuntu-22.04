@@ -118,33 +118,37 @@ RUN build_deps="\
   && cd /tmp \
   && git clone --single-branch --branch v2.4.0 https://github.com/edf-hpc/slurm-web.git \
   # (patch-start)
-  # (patch) stick to one language which already used in this project
+  # (problem) use one language already in use in this project
   && sed -i "s|cœurs utilisés|cores used|" slurm-web/dashboard/js/utils/tagsinput.js \
-  # (patch) regress to fix wrong job coloring in jobsmap problem (what a pity)
+  # (problem) regress to old version and fix the old version to fix wrong job counting in jobs-map in current version (what a pity)
   # @see https://github.com/edf-hpc/slurm-web/issues/210
   && git clone --single-branch --branch v2.2.2 https://github.com/edf-hpc/slurm-web.git slurm-web.v2.2.2 \
   && mv -f slurm-web.v2.2.2/dashboard/js/draw/2d-draw.js slurm-web/dashboard/js/draw/\
   && rm -rf slurm-web.v2.2.2 \
-  # (patch) fix a simple syntax error
+  && sed -i "245 a \        if (!(Number.isInteger(Number(job)) && Number(job) >= 1)) continue;" slurm-web/dashboard/js/draw/2d-draw.js \
+  # (problem) fix a syntax error due to version upgrade
   && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
-  # (patch) fix "cannot find package.json" problem
+  # (problem) fix "cannot find package.json"
   && tar -zxvf DejaVuSansMono.typeface.json.tar.gz \
   && chown root:root DejaVuSansMono.typeface.json \
   && sed -i "9s|nodejs.*|cp /tmp/DejaVuSansMono.typeface.json dashboard/js/fonts/DejaVuSansMono.typeface.json|" slurm-web/debian/rules \
-  # (patch) fix old syntax problem
+  # (problem) fix a syntax error due to version upgrade
   # @see https://github.com/edf-hpc/slurm-web/issues/115#issuecomment-292572760
   && sed -i "493s|font.*|font: font,|" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488s|^|//|" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488 a loader.load(config.RACKNAME.FONT.PATH, function(font) {" slurm-web/dashboard/js/draw/3d-draw.js \
   && sed -i "488 a var loader = new THREE.FontLoader();" slurm-web/dashboard/js/draw/3d-draw.js \
-  # (patch) fix old syntax problem
+  # (problem) fix a syntax error due to version upgrade
   # @see https://stackoverflow.com/a/46395784
   && find slurm-web/dashboard/js/ -name "*.js" \
     -exec sed -i "s|\.success(func|\.done(func|g" {} \; \
     -exec sed -i "s|\.error(func|\.fail(func|g" {} \; \
     -exec sed -i "s|\.complete(|\.always(|g" {} \; \
-  # (patch) fix wrong string
+  # (problem) fix a sematic error
   && sed -i "61s|users.*|users.push(tags[0]);|" slurm-web/dashboard/js/utils/tagsinput.js \
+  # (problem) fix tablesorter errors
+  && sed -i '13 a \    <link href="/javascript/jquery-tablesorter/css/theme.default.css" rel="stylesheet">' slurm-web/dashboard/html/index.html \
+  && sed -i "70 a \      $('table.tablesorter').tablesorter(self.tablesorterOptions);" slurm-web/dashboard/js/modules/jobs/jobs.js \
   # (patch-end)
   && cd slurm-web && rm -rf .git* .code* .css* .es* \
   && tar cvfj ../slurm_web_v2.4.0.orig.tar.bz2 . \
