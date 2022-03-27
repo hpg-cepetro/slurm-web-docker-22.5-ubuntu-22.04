@@ -165,7 +165,13 @@ RUN apt-get update \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /var/run/munge && chown munge:munge /var/run/munge \
   && mkdir -p /etc/service/munge \
-  && echo "#!/bin/bash\nset -e\nchown munge:munge /var/{lib,log,run}/munge\nexec /sbin/setuser munge /usr/sbin/munged -f" > /etc/service/munge/run \
+  && echo "#!/bin/bash" > /etc/service/munge/run \
+  && echo "set -e" >> /etc/service/munge/run \
+  && echo "chown munge:munge /var/{lib,log,run}/munge" >> /etc/service/munge/run \
+  && echo "chown -R munge:munge /etc/munge" >> /etc/service/munge/run \
+  && echo "chmod 700 /etc/munge" >> /etc/service/munge/run \
+  && echo "chmod 400 /etc/munge/munge.key" >> /etc/service/munge/run \
+  && echo "exec /sbin/setuser munge /usr/sbin/munged -F" >> /etc/service/munge/run \
   && chmod +x /etc/service/munge/run
 
 # Install and configure apache2
