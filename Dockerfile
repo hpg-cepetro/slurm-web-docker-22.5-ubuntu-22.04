@@ -126,7 +126,7 @@ RUN build_deps="\
   && mv -f slurm-web.v2.2.2/dashboard/js/draw/2d-draw.js slurm-web/dashboard/js/draw/\
   && rm -rf slurm-web.v2.2.2 \
   && sed -i "245 a \        if (!(Number.isInteger(Number(job)) && Number(job) >= 1)) continue;" slurm-web/dashboard/js/draw/2d-draw.js \
-  # (problem) fix a syntax error due to version imcompatibility
+  # (problem) fix a syntax error due to version incompatibility
   && sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
   # (problem) fix "cannot find package.json" (due to possible Ubuntu 20.04?)
   && tar -zxvf DejaVuSansMono.typeface.json.tar.gz \
