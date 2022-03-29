@@ -200,30 +200,14 @@ EXPOSE 80/tcp
 # Install slurm-web
 RUN apt-get update \
   && apt-get install --yes \
-    libjs-async \
-    libjs-bootstrap \
-    libjs-d3 \
-    libjs-handlebars \
-    libjs-jquery \
-    libjs-jquery-flot \
-    libjs-jquery-tablesorter \
-    libjs-requirejs \
-    libjs-requirejs-text \
-    libjs-three \
-#    nodejs \
-    python3-clustershell \
-    python3-flask \
-    python3-ldap \
-    python3-redis \
-    slurm-wlm-basic-plugins \
-  && dpkg -i /tmp/libjs-bootstrap-typeahead_0.11.1-1_all.deb \
-  && dpkg -i /tmp/libjs-bootstrap-tagsinput_0.8.0-1_all.deb \
-  && dpkg -i /tmp/python3-pyslurm_19.05.0_amd64.deb \
-  && dpkg -i /tmp/slurm-web-common_2.4.0_amd64.deb \
-  && dpkg -i /tmp/slurm-web-restapi_2.4.0_amd64.deb \
-  && dpkg -i /tmp/slurm-web-confdashboard_2.4.0_amd64.deb \
-  && dpkg -i /tmp/slurm-web-dashboard_2.4.0_amd64.deb \
-  && dpkg -i /tmp/slurm-web_2.4.0_amd64.deb \
+    /tmp/python3-pyslurm_19.05.0_amd64.deb \
+    /tmp/libjs-bootstrap-typeahead_0.11.1-1_all.deb \
+    /tmp/libjs-bootstrap-tagsinput_0.8.0-1_all.deb \
+    /tmp/slurm-web-common_2.4.0_amd64.deb \
+    /tmp/slurm-web-restapi_2.4.0_amd64.deb \
+    /tmp/slurm-web-confdashboard_2.4.0_amd64.deb \
+    /tmp/slurm-web-dashboard_2.4.0_amd64.deb \
+    /tmp/slurm-web_2.4.0_amd64.deb \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 CMD ["/sbin/my_init"]

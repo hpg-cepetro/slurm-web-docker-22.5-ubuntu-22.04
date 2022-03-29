@@ -9,7 +9,7 @@ Homepage: http://www.gingergeeks.co.uk/pyslurm/
 
 Package: python3-pyslurm
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, slurm-wlm-basic-plugins (>= 19.05.5)
 Description: Python API for slurm
  This package provide a Python API for slurm
  that can be used to contact slurmctld
