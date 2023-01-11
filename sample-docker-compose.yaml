@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+
+  redis:
+    image: redis:latest
+    environment:
+      TZ: 'America/Sao_Paulo'
+    restart: always
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "50m"
+
+  slurm-web:
+    image: slurm-web:slurm22.5_ubuntu22.04
+    depends_on:
+      - redis
+    ports:
+      # TODO
+      - "8081:80"
+    # TODO
+    #dns:
+    #  - "127.0.0.1"
+    environment:
+      TZ: 'America/Sao_Paulo'
+    volumes:
+      # TODO: set these volumes
+      - '<TODO>/slurm-web/conf/:/etc/slurm-web'
+      - '<TODO>/slurm-web/munge/:/etc/munge'
+      - '<TODO>:/usr/local/etc:ro'
+      - '/etc/passwd:/etc/passwd:ro'
+      - '/etc/group:/etc/group:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    restart: always
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "50m"
+
