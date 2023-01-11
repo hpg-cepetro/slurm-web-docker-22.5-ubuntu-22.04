@@ -43,7 +43,6 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 # Build slurm-web
-cp /build/slurm-web/DejaVuSansMono.typeface.json.tar.gz /tmp
 export build_deps="\
   apache2-dev \
   debhelper \
@@ -67,18 +66,6 @@ cp /build/node-async/* /usr/lib/nodejs
 sed -i "36d" slurm-web/debian/control
 # (problem) use one (human) language for this project
 sed -i "s|cœurs utilisés|cores used|" slurm-web/dashboard/js/utils/tagsinput.js
-# (problem) regress to old version and change code due to version incompatibility
-# @see https://github.com/edf-hpc/slurm-web/issues/210
-##  git clone --single-branch --branch v2.2.2 https://github.com/edf-hpc/slurm-web.git slurm-web.v2.2.2 \
-##  mv -f slurm-web.v2.2.2/dashboard/js/draw/2d-draw.js slurm-web/dashboard/js/draw/\
-##  rm -rf slurm-web.v2.2.2 \
-##  sed -i "245 a \        if (!(Number.isInteger(Number(job)) && Number(job) >= 1)) continue;" slurm-web/dashboard/js/draw/2d-draw.js \
-##  # (problem) fix a syntax error due to version incompatibility
-##  sed -i "16s|'\*.wsgi'|['\*.wsgi']|" slurm-web/setup.py \
-## (problem) fix "cannot find package.json" (due to possible Ubuntu 20.04?)
-##tar -zxvf DejaVuSansMono.typeface.json.tar.gz
-##chown root:root DejaVuSansMono.typeface.json
-##sed -i "9s|nodejs.*|cp /tmp/DejaVuSansMono.typeface.json dashboard/js/fonts/DejaVuSansMono.typeface.json|" slurm-web/debian/rules
 # (problem) fix a syntax error due to version incompatibility
 # @see https://github.com/edf-hpc/slurm-web/issues/115#issuecomment-292572760
 sed -i "493s|font.*|font: font,|" slurm-web/dashboard/js/draw/3d-draw.js
